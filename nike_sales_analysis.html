@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nike FY2024 Sales Performance Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: "DM Sans", sans-serif; background: #f8f6f2; color: #1a1a1a; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: #111; padding: 0 60px; height: 64px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.nav-logo { font-family: "Playfair Display", serif; color: #f5a623; font-size: 1rem; }
+.nav-links { display: flex; gap: 28px; list-style: none; }
+.nav-links a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s; }
+.nav-links a:hover { color: #f5a623; }
+.nav-tag { background: #f5a623; color: #111; font-size: 0.7rem; padding: 4px 12px; border-radius: 2px; font-weight: 700; }
+
+.hero {
+  min-height: 100vh; background: #111;
+  display: flex; align-items: center;
+  padding: 100px 80px 80px;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: "NIKE"; position: absolute;
+  right: -40px; top: 50%; transform: translateY(-50%);
+  font-size: 28vw; font-weight: 900; color: rgba(255,255,255,0.02);
+  font-family: "DM Sans", sans-serif; letter-spacing: -0.05em;
+  pointer-events: none;
+}
+.hero-inner { max-width: 780px; z-index: 1; }
+.hero-eyebrow { font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: #f5a623; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.hero-eyebrow::before { content: ""; width: 32px; height: 1px; background: #f5a623; }
+.hero h1 { font-family: "Playfair Display", serif; font-size: clamp(2.5rem, 4.5vw, 4rem); color: white; line-height: 1.1; margin-bottom: 24px; }
+.hero h1 em { color: #f5a623; font-style: normal; }
+.hero-sub { font-size: 1rem; color: rgba(255,255,255,0.5); margin-bottom: 40px; font-weight: 300; line-height: 1.7; max-width: 540px; }
+.hero-meta { display: flex; gap: 40px; flex-wrap: wrap; }
+.hero-meta-item label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.3); display: block; margin-bottom: 4px; }
+.hero-meta-item span { font-size: 0.9rem; color: rgba(255,255,255,0.8); font-weight: 500; }
+
+section { padding: 90px 80px; }
+.section-eyebrow { font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: #f5a623; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+.section-eyebrow::before { content: ""; width: 24px; height: 1px; background: #f5a623; }
+.section-title { font-family: "Playfair Display", serif; font-size: clamp(1.8rem, 2.5vw, 2.4rem); color: #1a1a1a; margin-bottom: 12px; }
+.section-rule { width: 40px; height: 2px; background: #f5a623; margin-bottom: 48px; }
+.section-title-white { color: white; }
+
+/* KPI STRIP */
+#kpis { background: white; padding: 60px 80px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.kpi-card { border-top: 3px solid #f5a623; padding: 24px; background: #f8f6f2; border-radius: 4px; }
+.kpi-card .val { font-family: "Playfair Display", serif; font-size: 2.2rem; color: #111; display: block; line-height: 1; }
+.kpi-card .val.down { color: #dc2626; }
+.kpi-card .val.up { color: #16a34a; }
+.kpi-card .label { font-size: 0.82rem; color: #6b7280; margin-top: 6px; display: block; }
+.kpi-card .change { font-size: 0.75rem; margin-top: 8px; display: inline-block; padding: 2px 8px; border-radius: 2px; font-weight: 600; }
+.change-up { background: #dcfce7; color: #16a34a; }
+.change-down { background: #fee2e2; color: #dc2626; }
+.change-flat { background: #f3f4f6; color: #6b7280; }
+
+/* CHARTS */
+#revenue { background: #f8f6f2; }
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; }
+.chart-card { background: white; border-radius: 8px; padding: 28px; box-shadow: 0 1px 8px rgba(0,0,0,0.06); }
+.chart-card h3 { font-size: 0.9rem; font-weight: 600; color: #1a1a1a; margin-bottom: 4px; }
+.chart-card p { font-size: 0.78rem; color: #9ca3af; margin-bottom: 20px; }
+.chart-full { background: white; border-radius: 8px; padding: 28px; box-shadow: 0 1px 8px rgba(0,0,0,0.06); }
+.chart-full h3 { font-size: 0.9rem; font-weight: 600; color: #1a1a1a; margin-bottom: 4px; }
+.chart-full p { font-size: 0.78rem; color: #9ca3af; margin-bottom: 20px; }
+
+/* CHANNEL */
+#channels { background: white; }
+.channel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+
+/* FINDINGS */
+#findings { background: #111; }
+.findings-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 48px; }
+.finding-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 28px; }
+.finding-num { font-family: "Playfair Display", serif; font-size: 2.8rem; color: #f5a623; opacity: 0.4; line-height: 1; margin-bottom: 12px; }
+.finding-card h3 { font-size: 0.95rem; font-weight: 600; color: white; margin-bottom: 10px; }
+.finding-card p { font-size: 0.83rem; color: rgba(255,255,255,0.55); line-height: 1.7; }
+.finding-card .tag { display: inline-block; background: rgba(245,166,35,0.15); color: #f5a623; font-size: 0.7rem; padding: 3px 8px; border-radius: 2px; margin-bottom: 10px; font-weight: 600; letter-spacing: 0.05em; }
+
+/* RECOMMENDATIONS */
+#recommendations { background: #f8f6f2; }
+.rec-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+.rec-card { background: white; border-radius: 8px; padding: 28px; border-left: 4px solid #f5a623; }
+.rec-card h3 { font-size: 1rem; font-weight: 600; color: #1a1a1a; margin-bottom: 10px; }
+.rec-card p { font-size: 0.85rem; color: #4b5563; line-height: 1.7; }
+.rec-card ul { margin-top: 12px; padding-left: 0; list-style: none; }
+.rec-card ul li { font-size: 0.82rem; color: #4b5563; padding: 5px 0; border-bottom: 1px solid #f9fafb; display: flex; gap: 8px; line-height: 1.5; }
+.rec-card ul li::before { content: "→"; color: #f5a623; font-weight: 700; flex-shrink: 0; }
+.priority { display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; margin-bottom: 12px; }
+.priority-high { background: #fee2e2; color: #dc2626; }
+.priority-med { background: #fef3c7; color: #92400e; }
+
+/* ABOUT */
+#about { background: white; }
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.about-text p { font-size: 0.95rem; line-height: 1.85; color: #374151; margin-bottom: 16px; font-weight: 300; }
+.about-text p strong { color: #1a1a1a; font-weight: 600; }
+.about-box { background: #111; padding: 36px; border-radius: 8px; }
+.about-box h3 { font-family: "Playfair Display", serif; font-size: 1.5rem; color: white; margin-bottom: 12px; }
+.about-box p { font-size: 0.88rem; color: rgba(255,255,255,0.55); line-height: 1.7; margin-bottom: 20px; }
+.contact-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.contact-row:last-child { border-bottom: none; }
+.contact-icon { width: 32px; height: 32px; background: #f5a623; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+.contact-row span { font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+.contact-row strong { display: block; font-size: 0.9rem; color: white; }
+
+footer { background: #0a0a0a; padding: 28px 80px; display: flex; justify-content: space-between; align-items: center; }
+footer p { font-size: 0.78rem; color: rgba(255,255,255,0.25); }
+footer span { color: #f5a623; }
+
+@media (max-width: 900px) {
+  nav { padding: 0 24px; }
+  .nav-links { gap: 16px; }
+  section, #kpis { padding: 60px 24px; }
+  .hero { padding: 100px 24px 60px; }
+  .kpi-grid, .charts-grid, .channel-grid, .findings-grid, .rec-grid, .about-grid { grid-template-columns: 1fr; gap: 20px; }
+  footer { flex-direction: column; gap: 10px; text-align: center; padding: 24px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-logo">Nike FY2024 — Sales Analysis</span>
+  <ul class="nav-links">
+    <li><a href="#kpis">KPIs</a></li>
+    <li><a href="#revenue">Revenue</a></li>
+    <li><a href="#channels">Channels</a></li>
+    <li><a href="#findings">Findings</a></li>
+    <li><a href="#recommendations">Strategy</a></li>
+  </ul>
+  <span class="nav-tag">FY2024 · 10-K Data</span>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Sales Performance Analysis · Fiscal Year 2024</div>
+    <h1>Nike, Inc.<br/><em>FY2024 Report</em></h1>
+    <p class="hero-sub">An independent analysis of Nike's fiscal year 2024 financial performance — examining revenue by region, product category, and distribution channel, identifying key trends, and presenting data-driven strategic recommendations.</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item"><label>Prepared By</label><span>Yonis Velasquez</span></div>
+      <div class="hero-meta-item"><label>Data Source</label><span>Nike 10-K Filing (FY2024)</span></div>
+      <div class="hero-meta-item"><label>Fiscal Year End</label><span>May 31, 2024</span></div>
+      <div class="hero-meta-item"><label>Total Revenue</label><span>$51.4 Billion</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- KPIs -->
+<div id="kpis">
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <span class="val">$51.4B</span>
+      <span class="label">Total Revenue FY2024</span>
+      <span class="change change-up">+0.3% YoY</span>
+    </div>
+    <div class="kpi-card">
+      <span class="val">$35.2B</span>
+      <span class="label">Footwear Revenue</span>
+      <span class="change change-flat">68.6% of total</span>
+    </div>
+    <div class="kpi-card">
+      <span class="val">$22.4B</span>
+      <span class="label">Direct-to-Consumer Revenue</span>
+      <span class="change change-up">+0.3% YoY</span>
+    </div>
+    <div class="kpi-card">
+      <span class="val down">$21.4B</span>
+      <span class="label">North America Revenue</span>
+      <span class="change change-down">-1% YoY</span>
+    </div>
+  </div>
+</div>
+
+<!-- REVENUE CHARTS -->
+<section id="revenue">
+  <div class="section-eyebrow">Revenue Breakdown</div>
+  <h2 class="section-title">Revenue by Region & Product</h2>
+  <div class="section-rule"></div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>Revenue by Region (FY2024)</h3>
+      <p>Total Nike Brand revenue: $49.3B across 4 geographic segments</p>
+      <canvas id="regionChart" height="260"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Revenue by Product Category (FY2024)</h3>
+      <p>Footwear dominates at 68.6% of total Nike, Inc. revenue</p>
+      <canvas id="productChart" height="260"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-full">
+    <h3>Regional Revenue: FY2023 vs FY2024 ($ Millions)</h3>
+    <p>Year-over-year comparison across all four Nike Brand geographic segments</p>
+    <canvas id="yoyChart" height="120"></canvas>
+  </div>
+</section>
+
+<!-- CHANNEL CHARTS -->
+<section id="channels">
+  <div class="section-eyebrow">Distribution Channel Analysis</div>
+  <h2 class="section-title">Wholesale vs. Direct-to-Consumer</h2>
+  <div class="section-rule"></div>
+  <div class="channel-grid">
+    <div class="chart-card">
+      <h3>Channel Split by Region (FY2024, $ Millions)</h3>
+      <p>DTC vs Wholesale breakdown across Nike Brand geographic segments</p>
+      <canvas id="channelChart" height="280"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Total Revenue Channel Mix FY2023 vs FY2024</h3>
+      <p>Wholesale slight recovery while DTC holds steady year-over-year</p>
+      <canvas id="channelTrendChart" height="280"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- FINDINGS -->
+<section id="findings">
+  <div class="section-eyebrow">Key Insights</div>
+  <h2 class="section-title section-title-white">What the Data Tells Us</h2>
+  <div class="section-rule"></div>
+  <div class="findings-grid">
+    <div class="finding-card">
+      <div class="tag">GROWTH CONCERN</div>
+      <div class="finding-num">01</div>
+      <h3>North America Is Slipping</h3>
+      <p>Nike's largest market declined 1% YoY from $21.6B to $21.4B. North America accounts for 43% of total revenue — a sustained decline here has outsized impact. DTC in North America fell from $10.3B to $10.4B (flat), while wholesale dropped from $11.3B to $11.0B. The home market is under pressure.</p>
+    </div>
+    <div class="finding-card">
+      <div class="tag">BRIGHT SPOT</div>
+      <div class="finding-num">02</div>
+      <h3>EMEA & APLA Are Growing</h3>
+      <p>Europe, Middle East & Africa grew from $13.4B to $13.6B (+1.4%) and Asia Pacific & Latin America grew from $6.4B to $6.7B (+4.6%). These two regions combined now represent 40% of Nike Brand revenue and are the clearest growth engines in the portfolio.</p>
+    </div>
+    <div class="finding-card">
+      <div class="tag">STRATEGIC SHIFT</div>
+      <div class="finding-num">03</div>
+      <h3>DTC Is Nearly Equal to Wholesale</h3>
+      <p>Nike's Direct-to-Consumer channel generated $22.4B vs. Wholesale's $28.9B in FY2024. DTC now represents 43.5% of total Nike Brand revenue — up from ~30% just five years ago. This shift gives Nike higher margins and more control over brand experience but creates wholesale partner tension.</p>
+    </div>
+    <div class="finding-card">
+      <div class="tag">PRODUCT MIX</div>
+      <div class="finding-num">04</div>
+      <h3>Footwear Dependence Is a Risk</h3>
+      <p>At 68.6% of revenue, Nike is heavily dependent on footwear. Apparel at 27% and Equipment at 4.1% are significantly underweight. Competitors like Adidas and Under Armour are growing apparel market share aggressively. Nike's apparel revenue actually declined from $13.9B to $13.9B (flat) YoY.</p>
+    </div>
+    <div class="finding-card">
+      <div class="tag">OPPORTUNITY</div>
+      <div class="finding-num">05</div>
+      <h3>Greater China Recovering</h3>
+      <p>After significant headwinds in prior years due to geopolitical tensions and COVID-era disruptions, Greater China grew from $7.2B to $7.5B (+4.1%) in FY2024. This recovery signals renewed consumer demand and improving brand sentiment in the world's second-largest consumer market.</p>
+    </div>
+    <div class="finding-card">
+      <div class="tag">EFFICIENCY</div>
+      <div class="finding-num">06</div>
+      <h3>Revenue Nearly Flat Overall</h3>
+      <p>Total Nike, Inc. revenue grew just 0.3% — from $51.2B to $51.4B. For a brand of Nike's scale and marketing investment, this near-flat growth signals a maturation challenge. The company is maintaining revenue but not accelerating it, pointing to the need for category expansion and market deepening.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RECOMMENDATIONS -->
+<section id="recommendations">
+  <div class="section-eyebrow">Strategic Recommendations</div>
+  <h2 class="section-title">Data-Driven Action Plan</h2>
+  <div class="section-rule"></div>
+  <div class="rec-grid">
+    <div class="rec-card">
+      <span class="priority priority-high">High Priority</span>
+      <h3>Double Down on EMEA & APLA Growth</h3>
+      <p>With North America declining and international markets growing, Nike should reallocate marketing spend toward EMEA and APLA where momentum is strongest.</p>
+      <ul>
+        <li>Increase localized marketing investment in EMEA — particularly in football (soccer) culture where Nike has deep roots</li>
+        <li>Expand APLA DTC infrastructure — grow digital channels in Brazil, Mexico, and Southeast Asia</li>
+        <li>Develop market-specific product lines that resonate with local consumer preferences</li>
+      </ul>
+    </div>
+    <div class="rec-card">
+      <span class="priority priority-high">High Priority</span>
+      <h3>Aggressively Grow the Apparel Category</h3>
+      <p>Apparel is flat at 27% of revenue while competitors are gaining ground. Nike has the brand equity to dominate performance apparel — but it requires focused investment.</p>
+      <ul>
+        <li>Launch a dedicated apparel campaign comparable in scale to footwear launches</li>
+        <li>Expand women's performance apparel — one of the fastest-growing segments in sportswear</li>
+        <li>Invest in lifestyle apparel to compete with Lululemon and Adidas Originals in the premium casual segment</li>
+      </ul>
+    </div>
+    <div class="rec-card">
+      <span class="priority priority-med">Medium Priority</span>
+      <h3>Protect & Deepen North America DTC</h3>
+      <p>North America wholesale is declining — Nike should accelerate the DTC transition in its home market to protect margins and brand control.</p>
+      <ul>
+        <li>Invest in Nike app personalization and loyalty features to increase repeat purchase rates</li>
+        <li>Expand Nike stores in mid-tier U.S. markets that are currently underserved</li>
+        <li>Create exclusive DTC product drops to incentivize direct channel purchasing behavior</li>
+      </ul>
+    </div>
+    <div class="rec-card">
+      <span class="priority priority-med">Medium Priority</span>
+      <h3>Accelerate Greater China Recovery</h3>
+      <p>The 4.1% growth in Greater China is encouraging but recovering from a low base. Nike should invest in cultural relevance to sustain momentum.</p>
+      <ul>
+        <li>Partner with Chinese athletes and cultural figures to rebuild brand affinity among Gen Z consumers</li>
+        <li>Develop China-specific product lines that blend Nike performance with local aesthetic preferences</li>
+        <li>Expand WeChat and Tmall digital presence to capture DTC growth in the world's largest e-commerce market</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-eyebrow">About This Report</div>
+  <h2 class="section-title">Analyst & Methodology</h2>
+  <div class="section-rule"></div>
+  <div class="about-grid">
+    <div class="about-text">
+      <p>This analysis was prepared independently by <strong>Yonis Velasquez</strong> as a portfolio project demonstrating applied data analysis and business strategy skills. All data is sourced directly from Nike, Inc.'s publicly available <strong>FY2024 Annual Report (Form 10-K)</strong> filed with the SEC, covering the fiscal year ended May 31, 2024.</p>
+      <p>The report examines revenue performance across Nike's four geographic segments (North America, EMEA, Greater China, APLA), two distribution channels (Wholesale and Direct-to-Consumer), and three product categories (Footwear, Apparel, Equipment). Year-over-year comparisons use FY2023 10-K data as the baseline.</p>
+      <p>Charts and visualizations were built using Chart.js. Strategic recommendations are based on data trends identified in the analysis and informed by publicly available industry research on the global sportswear market.</p>
+      <p><strong>Data Source:</strong> Nike, Inc. Form 10-K FY2024 · SEC EDGAR · investors.nike.com</p>
+    </div>
+    <div class="about-box">
+      <h3>Yonis Velasquez</h3>
+      <p>Marketing Analytics student at Cedarville University. Collegiate athlete, entrepreneur, and data-driven marketer with hands-on experience in campaign analytics, market research, and strategic communication.</p>
+      <div class="contact-row">
+        <div class="contact-icon">📧</div>
+        <div><span>Email</span><strong>yonisvelasquez18@gmail.com</strong></div>
+      </div>
+      <div class="contact-row">
+        <div class="contact-icon">🌐</div>
+        <div><span>Portfolio</span><strong>yonisv.github.io/yonis-portfolio</strong></div>
+      </div>
+      <div class="contact-row">
+        <div class="contact-icon">💼</div>
+        <div><span>LinkedIn</span><strong>linkedin.com/in/yonis-velasquez-quezada</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>&copy; 2026 <span>Yonis Velasquez</span> · Independent Analysis · Data: Nike 10-K FY2024 · Not affiliated with Nike, Inc.</p>
+  <p>Built with <span>Chart.js · GitHub Pages</span></p>
+</footer>
+
+<script>
+const orange = '#f5a623';
+const navy = '#111827';
+const gray = '#9ca3af';
+
+// 1. Region Donut
+new Chart(document.getElementById('regionChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['North America', 'EMEA', 'Greater China', 'APLA'],
+    datasets: [{
+      data: [21396, 13607, 7545, 6729],
+      backgroundColor: ['#f5a623', '#1a1a1a', '#d97706', '#6b7280'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { family: 'DM Sans', size: 11 }, padding: 16, color: '#374151' } },
+      tooltip: { callbacks: { label: ctx => ` $${(ctx.raw/1000).toFixed(1)}B` } }
+    }
+  }
+});
+
+// 2. Product Donut
+new Chart(document.getElementById('productChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Footwear', 'Apparel', 'Equipment', 'Other'],
+    datasets: [{
+      data: [35227, 13868, 2112, 155],
+      backgroundColor: ['#f5a623', '#1a1a1a', '#d97706', '#9ca3af'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { family: 'DM Sans', size: 11 }, padding: 16, color: '#374151' } },
+      tooltip: { callbacks: { label: ctx => ` $${(ctx.raw/1000).toFixed(1)}B` } }
+    }
+  }
+});
+
+// 3. YoY Bar
+new Chart(document.getElementById('yoyChart'), {
+  type: 'bar',
+  data: {
+    labels: ['North America', 'EMEA', 'Greater China', 'APLA'],
+    datasets: [
+      {
+        label: 'FY2023',
+        data: [21608, 13418, 7248, 6431],
+        backgroundColor: '#d1d5db',
+        borderRadius: 3,
+      },
+      {
+        label: 'FY2024',
+        data: [21396, 13607, 7545, 6729],
+        backgroundColor: '#f5a623',
+        borderRadius: 3,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top', labels: { font: { family: 'DM Sans', size: 11 }, color: '#374151' } },
+      tooltip: { callbacks: { label: ctx => ` $${(ctx.raw/1000).toFixed(1)}B` } }
+    },
+    scales: {
+      y: {
+        ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'B', font: { family: 'DM Sans', size: 10 } },
+        grid: { color: '#f3f4f6' }
+      },
+      x: { ticks: { font: { family: 'DM Sans', size: 11 } }, grid: { display: false } }
+    }
+  }
+});
+
+// 4. Channel by Region
+new Chart(document.getElementById('channelChart'), {
+  type: 'bar',
+  data: {
+    labels: ['North America', 'EMEA', 'Greater China', 'APLA'],
+    datasets: [
+      {
+        label: 'Wholesale',
+        data: [11004, 8562, 4262, 3930],
+        backgroundColor: '#1a1a1a',
+        borderRadius: 3,
+      },
+      {
+        label: 'Direct-to-Consumer',
+        data: [10392, 5045, 3283, 2799],
+        backgroundColor: '#f5a623',
+        borderRadius: 3,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top', labels: { font: { family: 'DM Sans', size: 11 }, color: '#374151' } },
+      tooltip: { callbacks: { label: ctx => ` $${(ctx.raw/1000).toFixed(1)}B` } }
+    },
+    scales: {
+      y: {
+        ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'B', font: { family: 'DM Sans', size: 10 } },
+        grid: { color: '#f3f4f6' }
+      },
+      x: { ticks: { font: { family: 'DM Sans', size: 10 } }, grid: { display: false } }
+    }
+  }
+});
+
+// 5. Channel Trend FY23 vs FY24
+new Chart(document.getElementById('channelTrendChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Wholesale FY23', 'Wholesale FY24', 'DTC FY23', 'DTC FY24'],
+    datasets: [{
+      data: [28696, 28856, 22282, 22351],
+      backgroundColor: ['#d1d5db', '#1a1a1a', '#fcd34d', '#f5a623'],
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ` $${(ctx.raw/1000).toFixed(1)}B` } }
+    },
+    scales: {
+      y: {
+        ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'B', font: { family: 'DM Sans', size: 10 } },
+        grid: { color: '#f3f4f6' }
+      },
+      x: { ticks: { font: { family: 'DM Sans', size: 10 } }, grid: { display: false } }
+    }
+  }
+});
+
+// Scroll animations
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.opacity = '1';
+      e.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.kpi-card, .chart-card, .chart-full, .finding-card, .rec-card').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(20px)';
+  el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
